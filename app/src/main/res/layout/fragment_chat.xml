@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Barra superior con botón de cierre, foto de perfil y nombre del usuario -->
+    <RelativeLayout
+        android:id="@+id/topBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/darker_gray"
+        android:padding="8dp">
+
+        <!-- Botón para cerrar el chat -->
+        <ImageButton
+            android:id="@+id/buttonCloseChat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_image_button"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_close"/>
+
+        <!-- ImageView para mostrar la foto de perfil -->
+        <ImageView
+            android:id="@+id/imageViewProfile"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="50dp"
+            android:layout_toEndOf="@id/buttonCloseChat"
+            android:layout_toRightOf="@id/buttonCloseChat"
+            android:src="@drawable/ic_person" />
+
+        <!-- EditText para mostrar el nombre del usuario -->
+        <EditText
+            android:id="@+id/editTextUserName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/imageViewProfile"
+            android:layout_toRightOf="@id/imageViewProfile"
+            android:background="@android:color/darker_gray"
+            android:padding="8dp"
+            android:hint="Nombre de usuario"
+            android:enabled="false" />
+    </RelativeLayout>
+
+    <!-- RecyclerView para mostrar los mensajes -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/messageInputLayout"
+        android:layout_below="@id/topBarLayout"
+        android:layout_marginBottom="20dp"
+        android:padding="16dp"
+        android:scrollbars="vertical" />
+
+    <!-- Layout para la entrada de mensajes -->
+    <RelativeLayout
+        android:id="@+id/messageInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/white"
+        android:padding="8dp">
+
+        <!-- Botón para enviar mensajes -->
+        <Button
+            android:id="@+id/buttonSendMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:text="Enviar" />
+
+        <!-- ImageButton para adjuntar imágenes -->
+        <ImageButton
+            android:id="@+id/buttonAttachImage"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_toLeftOf="@id/buttonSendMessage"
+            android:layout_toStartOf="@id/buttonSendMessage"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_mail" />
+
+        <!-- Campo de entrada de mensajes -->
+        <EditText
+            android:id="@+id/editTextMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@+id/buttonAttachImage"
+            android:layout_toStartOf="@+id/buttonAttachImage"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="8dp"
+            android:background="@android:color/darker_gray"
+            android:hint="Escribe un mensaje"
+            android:padding="8dp" />
+
+    </RelativeLayout>
+</RelativeLayout>
