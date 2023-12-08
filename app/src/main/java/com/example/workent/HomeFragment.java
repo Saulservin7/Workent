@@ -1,5 +1,14 @@
 package com.example.workent;
 
+import static android.content.ContentValues.TAG;
+
+
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -8,15 +17,29 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.workent.ui.theme.Trabajos;
 import com.example.workent.ui.theme.Usuarios;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,6 +50,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +75,12 @@ public class HomeFragment extends Fragment {
     FirebaseDatabase db;
     DatabaseReference reference;
     TextView nombre;
-    String titulo, descripcion, precio,selfieUrl;
+
+    String titulo, descripcion, precio,selfieUrl,clabe,terms;
 
     ImageView profilePhoto;
+
+    WebView webView;
 
     EditText searchBar;
 
@@ -66,7 +95,10 @@ public class HomeFragment extends Fragment {
         user = auth.getCurrentUser();
         nombre = rootView.findViewById(R.id.textView16);
         profilePhoto= rootView.findViewById(R.id.imageView5);
+
         ObtenerNombre(user.getEmail());
+
+
         recyclerView = rootView.findViewById(R.id.recycler_home);
         recyclerView2 = rootView.findViewById(R.id.recycler_home_workers);
         database = FirebaseDatabase.getInstance().getReference("Trabajos");
@@ -78,22 +110,20 @@ public class HomeFragment extends Fragment {
         LinearLayoutManager layoutManager1 = new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL, false);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView2.setLayoutManager(layoutManager1);
-
         searchBar=rootView.findViewById(R.id.editTextText);
-
-
-
-
+        verificarCalificacionesUsuarioActual();
         list2 = new ArrayList<>();
         adapterHome2 = new AdapterHomeWorkers(getContext(),list2);
         recyclerView2.setAdapter(adapterHome2);
-
-
-
-
         list = new ArrayList<>();
         adapterHome = new AdapterHome(getContext(), list);
         recyclerView.setAdapter(adapterHome);
+
+
+
+
+
+
 
         adapterHome.setOnItemClickListener(new AdapterHome.OnItemClickListener() {
             @Override
@@ -122,40 +152,6 @@ public class HomeFragment extends Fragment {
 
         // Supongamos que user.getEmail() devuelve el correo electrónico del usuario actual
 
-        final String userEmail = user.getEmail();
-
-        chats.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot chatSnapshot : snapshot.getChildren()) {
-                    Message lastMessage = null;
-
-                    for (DataSnapshot messageSnapshot : chatSnapshot.getChildren()) {
-                        Message message = messageSnapshot.getValue(Message.class);
-                        if (message != null) {
-                            // Verifica si es el mensaje más reciente comparando marcas de tiempo
-                            if (lastMessage == null || message.getTimestamp().after(lastMessage.getTimestamp())) {
-                                lastMessage = message;
-                            }
-                        }
-                    }
-
-                    // Imprime solo el último mensaje del chat
-                    if (lastMessage != null) {
-                        String sender = lastMessage.getSender();
-                        String text = lastMessage.getText();
-                        System.out.println("Sender: " + sender + ", Text: " + text);
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // Manejar errores de la consulta
-            }
-        });
-
-
 
 
 
@@ -164,11 +160,15 @@ public class HomeFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Trabajos user = dataSnapshot.getValue(Trabajos.class);
+                    Trabajos users = dataSnapshot.getValue(Trabajos.class);
 
-                    list.add(user);
+                    if (users.getUser().equals(user.getEmail()))
+                    {
 
-
+                    }
+                    else {
+                        list.add(users);
+                    }
                 }
                 adapterHome.notifyDataSetChanged();
 
@@ -183,11 +183,14 @@ public class HomeFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-
                     Usuarios workers = dataSnapshot.getValue(Usuarios.class);
-                    list2.add(workers);
+                    if (workers.getEmail().equals(user.getEmail()))
+                    {
+                    }
+                    else if (workers.getUserType().equals("Trabajador")){
+                        list2.add(workers);
+                    }
                 }
-
                 adapterHome2.notifyDataSetChanged();
             }
 
@@ -213,6 +216,7 @@ public class HomeFragment extends Fragment {
             public void afterTextChanged(Editable s) {
             }
         });
+
 
         return rootView;
     }
@@ -256,11 +260,17 @@ public class HomeFragment extends Fragment {
                             for (DataSnapshot snapshot1 : snapshot.getChildren()) {
                                 name = snapshot1.child("firstName").getValue().toString();
                                 selfieUrl=snapshot1.child("selfie").getValue().toString();
+                                String userType = snapshot1.child("userType").getValue().toString();
+                                if (userType.equals("Trabajador"))
+                                {
+                                    clabe=snapshot1.child("clabe").getValue().toString();
+                                    terms=snapshot1.child("terms").getValue().toString();
+                                    if (!clabe.isEmpty()&&terms.equals("")) {
+                                            mostrarMensajeConOpciones();
+                                    }
+                                }
                                 nombre.setText("Hola, " + name);
-
                                 Picasso.get().load(selfieUrl).into(profilePhoto);
-
-
                             }
                         }
                     }
@@ -272,11 +282,119 @@ public class HomeFragment extends Fragment {
                 });
     }
 
+    private void verificarCalificacionesUsuarioActual() {
+        final String userEmail = user.getEmail();
+
+        DatabaseReference calificacionesReference = FirebaseDatabase.getInstance().getReference("calificaciones");
+
+        calificacionesReference.orderByChild("cliente").equalTo(userEmail)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot calificacionSnapshot : snapshot.getChildren()) {
+                            // Obtén los datos de cada calificación
+                            String cliente = calificacionSnapshot.child("cliente").getValue(String.class);
+                            int calificacion = calificacionSnapshot.child("calificacion").getValue(Integer.class);
+                            String idTrabajo = calificacionSnapshot.child("idTrabajo").getValue(String.class);
+                            String comentario = calificacionSnapshot.child("comentario").getValue(String.class);
+
+
+                            // Verifica si la calificación es 0 y el comentario es "hola"
+                            if (calificacion == 0 && "".equals(comentario)) {
+                                // Abre el fragmento QualifyFragment con los datos
+                                openQualifyFragment(cliente);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // Manejar errores de la consulta
+                    }
+                });
+    }
+
+    private void mostrarMensajeConOpciones() {
+        Context context = getContext();
+        if (context == null) {
+            Log.e("HomeFragment", "El contexto es nulo en mostrarMensajeConOpciones()");
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Workent utiliza la plataforma de Stripe");
+        builder.setMessage("Para poder recibir los pagos debe llenar un pequeño formulario.");
+
+        builder.setPositiveButton("Aceptar y Continuar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Abre el fragmento StripeFragment
+                Fragment stripeFragment = new StripeFragment();
+                replaceFragment(stripeFragment);
+            }
+        });
+
+        builder.setNegativeButton("Rechazar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Puedes mostrar un mensaje o realizar alguna acción si el usuario rechaza
+                actualizarCampoTermsEnDatabase();
+            }
+        });
+
+        builder.show();
+    }
+
+
+
+
+    private void openQualifyFragment(String cliente) {
+        // Crea una nueva instancia de QualifyFragment con los datos
+        QualifyFragment qualifyFragment = QualifyFragment.newInstance(cliente,cliente);
+
+        // Reemplaza el fragmento actual con QualifyFragment
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.frame_layout, qualifyFragment);
+        fragmentTransaction.addToBackStack(null); // Agrega la transacción al back stack para que el usuario pueda retroceder
+        fragmentTransaction.commit();
+    }
+
+
     private void replaceFragment(Fragment fragment)
     {
         FragmentManager fragmentManager = getChildFragmentManager();
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout,fragment);
         fragmentTransaction.commit();
+    }
+
+    private void actualizarCampoTermsEnDatabase() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userEmail = currentUser.getEmail();
+
+            // Obtener una referencia a la base de datos
+            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
+            // Actualizar el campo 'terms' en el nodo 'Usuarios'
+            databaseReference.child("Usuarios").orderByChild("email").equalTo(userEmail)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                // Obtener la clave del nodo
+                                String usuarioKey = snapshot.getKey();
+
+                                // Actualizar el campo 'terms' a 'nulo'
+                                databaseReference.child("Usuarios").child(usuarioKey).child("terms").setValue("nulo");
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            Log.e("HomeFragment", "Error al actualizar el campo 'terms' en Realtime Database", databaseError.toException());
+                        }
+                    });
+        }
     }
 }

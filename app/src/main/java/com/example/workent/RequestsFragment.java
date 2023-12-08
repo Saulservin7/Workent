@@ -53,7 +53,7 @@ public class RequestsFragment extends Fragment {
     FirebaseDatabase db;
     DatabaseReference reference;
 
-    String status,workTitle,date,idWork,id;
+    String status,workTitle,date,idWork,id,trabajador;
 
 
 
@@ -120,27 +120,36 @@ public class RequestsFragment extends Fragment {
         database.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                list.clear(); // Limpiar la lista antes de agregar elementos
 
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    Solicitudes solicitud = dataSnapshot.getValue(Solicitudes.class);
 
-                    Solicitudes user = dataSnapshot.getValue(Solicitudes.class);
-                    list.add(user);
+                    // Verificar si el trabajador de la solicitud coincide con el correo del usuario actual
+                    if (solicitud.getTrabajador().equals(user.getEmail()) || solicitud.getCliente().equals(user.getEmail())) {
+                        list.add(solicitud);
+                    }
                 }
+
                 myAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                // Manejar errores si es necesario
             }
         });
+
+
+
         myAdapter.setOnItemClickListener(new AdapterRequests.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
                 // Obtener la solicitud seleccionada
                 Solicitudes selectedRequest = list.get(position);
 
-                // Guardar el valor del cliente en la variable clienteSeleccionado
+                // Guardar el valor del cliente en la variable clienteSeleccionado}
+                trabajador =selectedRequest.getTrabajador();
                 clienteSeleccionado = selectedRequest.getCliente();
                 workTitle = selectedRequest.getDate();
                 date=selectedRequest.getDate();
@@ -174,6 +183,7 @@ public class RequestsFragment extends Fragment {
                 bundle.putString("idWork",idWork);
                 bundle.putString("id",id);
                 bundle.putString("status",status);
+                bundle.putString("trabajador",trabajador);
 
                 // Crear una instancia del nuevo fragmento y pasarle el Bundle
                 Fragment requestViewFragment = new RequestViewFragment();

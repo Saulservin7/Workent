@@ -104,7 +104,7 @@
                     android:textAlignment="viewStart"
                     android:drawableStart="@drawable/ic_person"/>
                 <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/PaymentMethods"
+                    android:id="@+id/Chats"
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
                     android:layout_marginStart="32dp"
@@ -114,9 +114,9 @@
                     android:background="@drawable/btn_background"
                     android:drawablePadding="20dp"
                     android:textSize="15dp"
-                    android:text="Metodos de Pago"
+                    android:text="Chats"
                     android:textAlignment="viewStart"
-                    android:drawableStart="@drawable/ic_payment"
+                    android:drawableStart="@drawable/ic_chat"
                     />
 
                 <androidx.appcompat.widget.AppCompatButton

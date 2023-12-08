@@ -110,7 +110,7 @@ public class ProfileFragment extends Fragment {
         buttonLogout = rootView.findViewById(R.id.CloseSession);
         btnPersonalData = rootView.findViewById(R.id.PersonalData);
         btnWorks = rootView.findViewById(R.id.Works);
-        btnChats = rootView.findViewById(R.id.PaymentMethods);
+        btnChats = rootView.findViewById(R.id.Chats);
         btnRequests=rootView.findViewById(R.id.Requests);
         mail = rootView.findViewById(R.id.textView2);
         name = rootView.findViewById(R.id.textView);

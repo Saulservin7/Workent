@@ -82,6 +82,8 @@ public class ServiceViewFragment extends Fragment {
     FirebaseUser user;
     FirebaseDatabase db;
 
+    String idWorker;
+
     DatabaseReference databaseReference;
 
     String nombre,token,photoWorker,idTrabajo,usuario,idTrabajador,correo;
@@ -206,9 +208,8 @@ public class ServiceViewFragment extends Fragment {
                 public void onNombreObtenido(String nombre, String idTrabajador) {
                     worker.setText(nombre);
                     //idTrabajo=idTrabajador;
+                    idWorker=idTrabajador;
                     photoWorker=photoWorker;
-
-
                 }
 
 
@@ -255,7 +256,8 @@ public class ServiceViewFragment extends Fragment {
                     String nuevaSolicitudRefKey = nuevaSolicitudRef.getKey(); // Obtén la clave única
                     Solicitudes nuevaSolicitud = new Solicitudes(nuevaSolicitudRefKey, user.getEmail(),usuario, idTrabajo,"Pendiente",selectedDate,selectedTime);
                     nuevaSolicitudRef.setValue(nuevaSolicitud);
-                    sendNotification(idTrabajo);
+                    System.out.println("taco"+idTrabajo);
+                    sendNotification(idWorker);
                 }
                 else
                 {

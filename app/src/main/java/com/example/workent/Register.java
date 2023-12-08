@@ -4,25 +4,24 @@ import static android.content.ContentValues.TAG;
 import static com.example.workent.AddWorkFragment.REQUEST_GALLERY;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.api.Status;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
-import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
-
-
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 
-import com.google.android.gms.common.api.Status;
-import com.google.android.libraries.places.api.model.TypeFilter;
-import com.google.android.libraries.places.api.model.AutocompletePrediction;
-import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
-
 import android.content.Intent;
 import android.provider.MediaStore;
 import android.text.Editable;
@@ -46,6 +45,7 @@ import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -59,12 +59,21 @@ import com.google.firebase.storage.StorageReference;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Arrays;
+
+
+
 
 
 public class Register extends AppCompatActivity {
 
-    TextInputEditText editTextEmail, editTextPassword,editTextCellphone,editTextFirstName,editTextLastName;
+    TextInputEditText editTextEmail, editTextPassword,editTextCellphone,editTextFirstName,editTextLastName,editTextClabeText;
+    TextInputLayout editTextClabe;
+
+    TextView textClabe;
     Button buttonReg;
 
     private PlacesClient placesClient;
@@ -124,27 +133,26 @@ public class Register extends AppCompatActivity {
         editTextCellphone = findViewById(R.id.cellphone);
         editTextFirstName = findViewById(R.id.firstName);
         editTextLastName = findViewById(R.id.lastName);
+        editTextClabe = findViewById(R.id.clabe);
         userType = findViewById(R.id.userTypeRadioGroup);
         buttonReg = findViewById(R.id.btn_register);
         progressBar = findViewById(R.id.progressBar);
-
         buttonLog = findViewById(R.id.btn_login);
         selfie = findViewById(R.id.imageButton);
+        textClabe = findViewById(R.id.textView23);
+        editTextClabeText=findViewById(R.id.clabeText);
         db = FirebaseDatabase.getInstance();
         buttonReg.setEnabled(false);
-        Places.initialize(getApplicationContext(), getString(R.string.google_maps_key));
-        placesClient = Places.createClient(this);
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Button loginNowButton = findViewById(R.id.btn_login);
-
-
-
         Places.initialize(getApplicationContext(), getString(R.string.google_maps_key));
-        placesClient = Places.createClient(this);
-
-        autocompleteFragment = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-        autocompleteFragment.setTypeFilter(TypeFilter.ADDRESS);
+        AutocompleteSupportFragment autocompleteFragment =
+                (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        autocompleteFragment.setHint("Ingresa tu Direccion");
+         autocompleteFragment.setTypeFilter(TypeFilter.ADDRESS);
         autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS));
+
+
 
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -152,7 +160,7 @@ public class Register extends AppCompatActivity {
                 String locationName = place.getName();
                 locationAddress = place.getAddress();
                 // Puedes almacenar estos datos en la base de datos o realizar otras operaciones según tus necesidades
-                Toast.makeText(Register.this, "Ubicación seleccionada: " + locationName, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(Register.this, "Ubicación seleccionada: " + locationName, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -161,19 +169,18 @@ public class Register extends AppCompatActivity {
             }
         });
 
-
-
-
-
-
-
-
-
         selfie.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(intent, REQUEST_GALLERY);
+            }
+        });
+
+        buttonLog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
             }
         });
 
@@ -304,11 +311,20 @@ public class Register extends AppCompatActivity {
             }
         });
 
-
-
-
-
-
+        userType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
+                if (checkedId == R.id.radioWorker) {
+                    // Muestra el EditText clabe cuando se selecciona Trabajador
+                    editTextClabe.setVisibility(View.VISIBLE);
+                    textClabe.setVisibility(View.VISIBLE);
+                } else {
+                    // Oculta el EditText clabe para otros tipos de usuario
+                    editTextClabe.setVisibility(View.GONE);
+                    textClabe.setVisibility(View.GONE);
+                }
+            }
+        });
 
 
         buttonReg.setOnClickListener(new View.OnClickListener() {
@@ -327,6 +343,8 @@ public class Register extends AppCompatActivity {
                 {
                     RadioButton selectedUser = findViewById(userSelected);
                     usertype = selectedUser.getText().toString();
+
+
 
                 } else {
                     usertype = "";
@@ -354,12 +372,6 @@ public class Register extends AppCompatActivity {
                     Toast.makeText(Register.this, "El ImageButton está vacío", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-
-
-
-                // Write a message to the database
-
 
                 mAuth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -397,7 +409,7 @@ public class Register extends AppCompatActivity {
 
                                                                         // Get new FCM registration token
                                                                         String token = task.getResult();
-                                                                        Usuarios nuevoUsuario = new Usuarios(email, password, cellphone, firstname, lastname, usertype, imageUrl,token,locationAddress);
+                                                                        Usuarios nuevoUsuario = new Usuarios(email, password, cellphone, firstname, lastname, usertype, imageUrl,token,locationAddress,editTextClabeText.getText().toString(),"");
 
                                                                         DatabaseReference usuariosRef = databaseReference.child("Usuarios");
                                                                         usuariosRef.push().setValue(nuevoUsuario);
@@ -465,9 +477,6 @@ public class Register extends AppCompatActivity {
             }
         }
     }
-
-
-
 
 }
 

@@ -115,13 +115,11 @@
                 android:drawableStart="@drawable/ic_password"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        -->
-
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             app:boxBackgroundMode="filled"
+            android:layout_marginTop="10dp"
             app:boxCornerRadiusBottomEnd="20dp"
             app:boxCornerRadiusBottomStart="20dp"
             app:boxCornerRadiusTopEnd="20dp"
@@ -140,40 +138,43 @@
                 android:drawableStart="@drawable/ic_phone"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            android:layout_marginTop="10dp"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Ingresa Tu Dirección"
-            android:textSize="20dp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:drawableStart="@drawable/ic_location"></TextView>
 
 
-
-        <fragment
-            android:id="@+id/autocomplete_fragment"
-            android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textColor="#000000"
-            android:textSize="18sp"
-            app:backgroundTint="#FFFFFFFF"
-            android:background="#FFFFFFFF"
-            android:drawableStart="@drawable/ic_location"
-            app:layout_constraintTop_toBottomOf="@id/cellphone"
-            android:hint="Ingresa Tu Direccion"/>
+            android:layout_marginTop="16dp">
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:boxBackgroundMode="filled"
+                app:boxCornerRadiusBottomEnd="20dp"
+                app:boxCornerRadiusBottomStart="20dp"
+                app:boxCornerRadiusTopEnd="20dp"
+                app:boxCornerRadiusTopStart="20dp">
 
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/location"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:textColor="#000000"
+                    android:textSize="18sp"
+                    app:backgroundTint="#A0FFFFFF"
+                    android:drawablePadding="8dp"
+                    />
+            </com.google.android.material.textfield.TextInputLayout>
 
-
-
-
-
-
-
+            <fragment
+                android:drawableStart="@drawable/ic_location"
+                android:id="@+id/autocomplete_fragment"
+                android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                />
+        </FrameLayout>
 
         <RadioGroup
             android:id="@+id/userTypeRadioGroup"
@@ -199,6 +200,48 @@
                 android:textStyle="bold"
                 android:textSize="20dp"/>
         </RadioGroup>
+
+
+        <TextView
+            android:id="@+id/textView23"
+            android:layout_marginTop="10dp"
+            android:textSize="20dp"
+            android:visibility="invisible"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Si Deseas Recibir Pagos Con Tarjeta Ingresa Tu Cuenta Clabe" />
+
+        <com.google.android.material.textfield.TextInputLayout
+
+            android:layout_width="match_parent"
+            android:id="@+id/clabe"
+            android:layout_height="wrap_content"
+            app:boxBackgroundMode="filled"
+            android:layout_marginTop="10dp"
+            app:boxCornerRadiusBottomEnd="20dp"
+            app:boxCornerRadiusBottomStart="20dp"
+            app:boxCornerRadiusTopEnd="20dp"
+            app:boxCornerRadiusTopStart="20dp"
+            android:visibility="invisible"
+            >
+
+            <com.google.android.material.textfield.TextInputEditText
+
+                android:id="@+id/clabeText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Cuenta Clabe"
+                android:inputType="number"
+                android:textColor="#000000"
+                android:textSize="18sp"
+                app:backgroundTint="#A0FFFFFF"
+                android:drawablePadding="8dp"
+                android:drawableStart="@drawable/ic_bank"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+
 
         <TextView
             android:layout_marginTop="10dp"

@@ -23,6 +23,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.workent.ui.theme.Calificaciones;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -74,7 +75,7 @@ public class RequestViewFragment extends Fragment {
     FirebaseUser user;
     FirebaseDatabase db;
     PaymentSheet paymentSheet;
-    String paymentIntentClientSecret, amount;
+    String paymentIntentClientSecret,cuentaStripe,nuevaCalificacionKey;
 
     PaymentSheet.CustomerConfiguration customerConfig;
 
@@ -93,10 +94,10 @@ public class RequestViewFragment extends Fragment {
 
     private static final String ARG_FECHA="fecha";
 
-    String nombre,token,photoWorker,idTrabajo,usuario,idTrabajador,titulo,tokenClient,estatus,id;
+    String nombre,token,photoWorker,idTrabajo,usuario,idTrabajador,titulo,tokenClient,estatus,id,trabajador,clienteSeleccionado,idWork,tokenWorker;
 
 
-    TextView tittle,price,location,client,time,date;
+    TextView tittle,price,location,client,time,TextViewdate;
 
     ImageView photo,profileClient;
 
@@ -133,7 +134,7 @@ public class RequestViewFragment extends Fragment {
         String paymentIntentClientSecret;
         PaymentSheet.CustomerConfiguration customerConfig;
 
-        fetchPaymentApi();
+
 
 
         if (getArguments() != null) {
@@ -194,58 +195,68 @@ public class RequestViewFragment extends Fragment {
         reject = rootView.findViewById(R.id.btn_reject);
         client = rootView.findViewById(R.id.textView8);
         time = rootView.findViewById(R.id.time);
-        date = rootView.findViewById(R.id.date);
+        TextViewdate = rootView.findViewById(R.id.date);
         profileClient = rootView.findViewById(R.id.profile_image);
 
 
-            String titulo = getArguments().getString(ARG_TITULO);
-            String ubicacion = getArguments().getString(ARG_UBICACION);
-            String precio = getArguments().getString(ARG_PRECIO);
-            String imageUrl = getArguments().getString(ARG_IMAGE);
-            String fecha= getArguments().getString(ARG_FECHA);
 
-            usuario = getArguments().getString(ARG_USUARIO);
-
-            // Recupera el valor de idTrabajo del Bundle de argumentos
-            idTrabajo = getArguments().getString(ARG_IDTRABAJO);
-
-            tittle.setText(titulo);
-            location.setText(ubicacion);
-            price.setText(precio);
-            time.setText(fecha);
-            Picasso.get()
-                    .load(imageUrl) // Utiliza la URL de la imagen
-                    .into(photo);
 
 
             //ObtenerNombre(usuario);
 
 
-            Picasso.get()
+            /*Picasso.get()
                     .load(imageUrl) // Utiliza la URL de la imagen
-                    .into(photo);
+                    .into(photo);*/
 
         Bundle bundle = getArguments();
         if (bundle != null) {
-            String clienteSeleccionado = bundle.getString("clienteSeleccionado", "");
+             clienteSeleccionado = bundle.getString("clienteSeleccionado", "");
             String workTitle = bundle.getString("workTitle", "");
             String idUsuario = bundle.getString("idUsuario", "");
             String date = bundle.getString("date", "");
-            String idWork = bundle.getString("idWork","");
+            idWork = bundle.getString("idWork","");
             id = bundle.getString("id","");
             estatus=bundle.getString("status","");
+            trabajador=bundle.getString("trabajador","");
+            ObtenerNombre(clienteSeleccionado);
 
+            if (estatus.equals("Finalizada"))
+            {
+                reject.setVisibility(View.INVISIBLE);
+                accept.setText("Finalizada");
+                accept.setEnabled(false);
+
+            }
             if ("Aceptada".equals(estatus)) {
                 accept.setText("Finalizar");
                 reject.setVisibility(View.INVISIBLE);
+
             }
 
-            idTrabajo=idWork;
+            if (clienteSeleccionado.equals(user.getEmail()))
+            {
+                TextViewdate.setVisibility(View.VISIBLE);
+                TextViewdate.setText(estatus);
+                accept.setVisibility(View.INVISIBLE); // Deshabilitar el botón "Aceptar"
+                reject.setVisibility(View.INVISIBLE);
+                ObtenerNombre2(trabajador);
 
-            // Utilizar los datos como sea necesario
+                if (estatus.equals("Aceptada")){
+                    accept.setVisibility(View.VISIBLE);
+                    accept.setText("Pagar");
+
+                }
+
+            }
+            idTrabajo=idWork;
             time.setText(date);
-            ObtenerNombre(clienteSeleccionado);
+
             ObtenerTrabajo(idWork);
+            ObtenerCuenta(trabajador);
+           // System.out.println("Dios"+precio+cuentaStripe);
+            //fetchPaymentApi(precio+"00",cuentaStripe);
+
 
         }
 
@@ -255,16 +266,25 @@ public class RequestViewFragment extends Fragment {
 
                 if (accept.getText().toString().equals("Finalizar"))
                 {
-                    DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference("Solicitudes").child(id);
-                    requestRef.child("estatus").setValue("Finalizada");
-                    sendNotification(tokenClient,"Finalizada");
-                }
-                else {
-                    // Actualizar el estado en la base de datos a "Aceptada"
-                    estatus="Aceptada";
+                   showConfirmationDialog();
+                   accept.setEnabled(false);
+
+                    Calificaciones calificacion = new Calificaciones(0, clienteSeleccionado, user.getEmail(), idWork, "");
+
+                    // Obtener una nueva clave única para la calificación en la base de datos
+                    nuevaCalificacionKey = databaseReference.child("calificaciones").push().getKey();
+
+                    // Establecer la calificación en la ubicación correspondiente en la base de datos
+                    databaseReference.child("calificaciones").child(nuevaCalificacionKey).setValue(calificacion);
+                } else if (accept.getText().toString().equals("Pagar")) {
                     if (paymentIntentClientSecret != null)
                         paymentSheet.presentWithPaymentIntent(paymentIntentClientSecret, new PaymentSheet.Configuration("Codes Easy",
                                 customerConfig));
+
+                } else {
+                    // Actualizar el estado en la base de datos a "Aceptada"
+                    estatus="Aceptada";
+
                     //updateStatusInDatabase(estatus);
                     DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference("Solicitudes").child(id);
                     requestRef.child("estatus").setValue(estatus);
@@ -368,6 +388,31 @@ public class RequestViewFragment extends Fragment {
                 });
     }
 
+    public void ObtenerNombre2(String email) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        databaseReference.child("Usuarios").orderByChild("email").equalTo(email)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            for (DataSnapshot snapshot1 : snapshot.getChildren()) {
+                                nombre = snapshot1.child("firstName").getValue().toString() + " " + snapshot1.child("lastName").getValue().toString();
+                                client.setText(nombre);
+                                tokenWorker= snapshot1.child("id").getValue().toString();
+                                photoWorker = snapshot1.child("selfie").getValue().toString();
+                                Picasso.get().load(photoWorker).into(profileClient);
+
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // Maneja errores aquí si es necesario
+                    }
+                });
+    }
+
     public void ObtenerTrabajo(String idWork) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         databaseReference.child("Trabajos").orderByChild("id").equalTo(idWork)
@@ -378,12 +423,10 @@ public class RequestViewFragment extends Fragment {
                             for (DataSnapshot snapshot1 : snapshot.getChildren()) {
                                 titulo=snapshot1.child("tittle").getValue().toString();
                                 tittle.setText(titulo);
-
                                  precio= snapshot1.child("price").getValue().toString();
                                  price.setText(precio);
                                 photoWork = snapshot1.child("imageUri").getValue().toString();
                                 Picasso.get().load(photoWork).into(photo);
-
                             }
                         }
                     }
@@ -475,51 +518,109 @@ public class RequestViewFragment extends Fragment {
         return null;
     }
 
-    public void fetchPaymentApi() {
+    public void fetchPaymentApi(String price, String idStripe) {
+
         RequestQueue queue = Volley.newRequestQueue(getContext());
-        String url = "https://us-central1-workent-1fbff.cloudfunctions.net/helloWorld?amt=100";
+        String url = "https://us-central1-stripe-795af.cloudfunctions.net/makePayment?monto="+price+"00"+"&destino="+idStripe+"";
 
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
-                new Response.Listener<String>() {
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(String response) {
-                        Log.e("R", response);
+                    public void onResponse(JSONObject response) {
+                        Log.e("R", response.toString());
                         try {
-                            final JSONObject result = new JSONObject(response);
                             customerConfig = new PaymentSheet.CustomerConfiguration(
-                                    result.getString("customer"),
-                                    result.getString("ephemeralKey")
+                                    response.getString("customer"),
+                                    response.getString("ephemeralKey")
                             );
-                            paymentIntentClientSecret = result.getString("paymentIntent");
-                            PaymentConfiguration.init(getContext(), result.getString("publishableKey"));
+                            paymentIntentClientSecret = response.getString("paymentIntent");
+                            PaymentConfiguration.init(getContext(), response.getString("publishableKey"));
 
-                        } catch (JSONException e) { e.printStackTrace(); }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
             }
-        }) {
-            protected Map<String, String> getParams() {
-                Map<String, String> paramV = new HashMap<>();
-                paramV.put("authKey", "abc");
-                return paramV;
-            }
-        };
-        queue.add(stringRequest);
+        });
+
+        queue.add(jsonObjectRequest);
     }
+
 
     private void onPaymentSheetResult(final PaymentSheetResult paymentSheetResult) {
         if (paymentSheetResult instanceof PaymentSheetResult.Canceled) {
-            Log.e("R:", "Canceled");
+            Log.e("R:", "Pago cancelado");
         } else if (paymentSheetResult instanceof PaymentSheetResult.Failed) {
-            Log.e("App", "Got error: ", ((PaymentSheetResult.Failed) paymentSheetResult).getError());
+            Log.e("App", "Error en el pago: ", ((PaymentSheetResult.Failed) paymentSheetResult).getError());
         } else if (paymentSheetResult instanceof PaymentSheetResult.Completed) {
-            // Display for example, an order confirmation screen
-            Log.e("R:", "Completed");
+            // Puedes mostrar un mensaje de confirmación o realizar acciones adicionales
+            Log.e("R:", "Pago completado");
+            estatus = "Finalizada";
+            DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference("Solicitudes").child(id);
+            requestRef.child("estatus").setValue(estatus);
+            sendNotification(tokenWorker, estatus);
+            Calificaciones calificacion = new Calificaciones(0, clienteSeleccionado, user.getEmail(), idWork, "");
+
+            // Obtener una nueva clave única para la calificación en la base de datos
+            databaseReference = FirebaseDatabase.getInstance().getReference();
+            nuevaCalificacionKey = databaseReference.child("calificaciones").push().getKey();
+
+            // Establecer la calificación en la ubicación correspondiente en la base de datos
+            databaseReference.child("calificaciones").child(nuevaCalificacionKey).setValue(calificacion);
+
         }
     }
+
+
+    private void showConfirmationDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Confirmar");
+        builder.setMessage("¿Ya recibió el pago en efectivo o con tarjeta?");
+        builder.setPositiveButton("Sí", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Realizar acciones para "Sí"
+                DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference("Solicitudes").child(id);
+                requestRef.child("estatus").setValue("Finalizada");
+                sendNotification(tokenClient, "Finalizada");
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Realizar acciones para "No" (opcional)
+            }
+        });
+        builder.show();
+    }
+
+    public void ObtenerCuenta(String email) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        databaseReference.child("Usuarios").orderByChild("email").equalTo(email)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            for (DataSnapshot snapshot1 : snapshot.getChildren()) {
+                                cuentaStripe = snapshot1.child("idStripe").getValue().toString();
+                                fetchPaymentApi(precio, cuentaStripe);
+
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // Manejo de errores
+                    }
+                });
+    }
+
+
 
 
 }

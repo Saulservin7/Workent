@@ -18,6 +18,10 @@ public class Usuarios {
 
     private String address;
 
+    private String clabe;
+
+    private String terms;
+
 
 
 
@@ -26,7 +30,7 @@ public class Usuarios {
         // Constructor vacío requerido para Firebase
     }
 
-    public Usuarios(String correo, String contraseña, String celular, String nombre, String apellido, String tipoUsuario,String selfie,String id,String address) {
+    public Usuarios(String correo, String contraseña, String celular, String nombre, String apellido, String tipoUsuario,String selfie,String id,String address,String clabe,String terms) {
         this.password = contraseña;
         this.email = correo;
         this.cellphone = celular;
@@ -36,6 +40,8 @@ public class Usuarios {
         this.selfie = selfie;
         this.id=id;
         this.address=address;
+        this.clabe=clabe;
+        this.terms=terms;
     }
 
     public String getEmail() {
@@ -68,6 +74,10 @@ public class Usuarios {
         return address;
     }
 
+    public String getClabe(){return clabe;}
 
+    public String getTerms() {
+        return terms;
+    }
 }
 

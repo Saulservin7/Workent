@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- ImageView arriba de las estrellas -->
+    <ImageView
+        android:id="@+id/photoWorker"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"/>
+
+    <!-- RatingBar con 5 estrellas -->
+    <TextView
+        android:id="@+id/textView24"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/photoWorker"
+        android:layout_centerHorizontal="true"
+        android:text="TextView" />
+
+    <RatingBar
+        android:id="@+id/ratingBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textView24"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:numStars="5"
+        android:stepSize="1.0" />
+
+    <!-- EditText grande para agregar comentario -->
+    <EditText
+        android:id="@+id/editTextComment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ratingBar"
+        android:layout_margin="16dp"
+        android:hint="Agrega un comentario"
+        android:inputType="textMultiLine"
+        android:gravity="top"
+        android:minLines="3" />
+
+    <!-- Botón para calificar -->
+    <Button
+        android:id="@+id/buttonCalificar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/editTextComment"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Calificar" />
+
+</RelativeLayout>
