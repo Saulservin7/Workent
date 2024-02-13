@@ -8,7 +8,7 @@ Esta aplicacion permite que los trabajadores pertenecientes al sector informal, 
 
 ## Capturas de Pantalla
 
-![](Workent/Screenshots/Pantalla Principal.jpg)
+(Screenshots/Pantalla Principal.jpg)
 
 
 ## Funcionalidades
