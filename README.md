@@ -9,6 +9,7 @@ Esta aplicacion permite que los trabajadores pertenecientes al sector informal, 
 ## Capturas de Pantalla
 
 ![Pantalla Principal](Screenshots/Pantalla%20Principal.jpg)
+![Home](Screenshots/Home.jpg)
 
 
 
